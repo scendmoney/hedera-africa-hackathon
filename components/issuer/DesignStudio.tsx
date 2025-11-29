@@ -6,7 +6,7 @@
 'use client'
 
 import { RecognitionTemplate } from '@/lib/issuer/templates'
-import { Award, Users, Heart, Trophy, GraduationCap, Code, Globe, Lightbulb, HandHeart, Briefcase, ShieldCheck, Microscope, Sparkles } from 'lucide-react'
+import { Award, Users, Heart, Trophy, GraduationCap, Code, Globe, Lightbulb, Briefcase, ShieldCheck, Microscope, Sparkles } from 'lucide-react'
 
 interface DesignStudioProps {
   selectedTemplate: RecognitionTemplate | null
@@ -26,7 +26,7 @@ const iconMap: Record<string, any> = {
   'code': Code,
   'globe': Globe,
   'lightbulb': Lightbulb,
-  'hand-heart': HandHeart,
+  'hand-heart': Heart,  // Using Heart as fallback
   'briefcase': Briefcase,
   'shield-check': ShieldCheck,
   'microscope': Microscope

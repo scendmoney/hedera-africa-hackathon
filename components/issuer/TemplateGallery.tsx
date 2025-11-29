@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { DEPARTMENT_TEMPLATES, RecognitionTemplate, getAllCategories } from '@/lib/issuer/templates'
-import { Award, Users, Heart, Trophy, GraduationCap, Code, Globe, Lightbulb, HandHeart, Briefcase, ShieldCheck, Microscope } from 'lucide-react'
+import { Award, Users, Heart, Trophy, GraduationCap, Code, Globe, Lightbulb, Briefcase, ShieldCheck, Microscope } from 'lucide-react'
 
 interface TemplateGalleryProps {
   selectedTemplateId?: string
@@ -24,7 +24,7 @@ const iconMap: Record<string, any> = {
   'code': Code,
   'globe': Globe,
   'lightbulb': Lightbulb,
-  'hand-heart': HandHeart,
+  'hand-heart': Heart,  // Using Heart as fallback
   'briefcase': Briefcase,
   'shield-check': ShieldCheck,
   'microscope': Microscope

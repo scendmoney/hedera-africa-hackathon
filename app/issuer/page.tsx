@@ -21,7 +21,7 @@ import {
   SignalMintPayload, 
   IssuerSubmitResponse 
 } from '@/lib/issuer/types'
-import { RecognitionTemplate, getTemplate } from '@/lib/issuer/templates'
+import { RecognitionTemplate } from '@/lib/issuer/templates'
 
 // Hardcoded issuer account for MVP (can be made configurable later)
 const ISSUER_ACCOUNT_ID = process.env.NEXT_PUBLIC_ISSUER_ACCOUNT_ID || '0.0.4851773'
