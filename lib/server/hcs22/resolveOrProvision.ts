@@ -122,6 +122,18 @@ export async function resolveOrProvision(issuer: string): Promise<ResolutionResu
       // Non-blocking - account is already created and verified
     }
     
+    // Auto-bond new user to Trust Agent (the "Tom from MySpace" experience)
+    try {
+      const { autoBondToTrustAgent } = await import('../trustAgent/autoBond');
+      const bonded = await autoBondToTrustAgent(newAccountId, did);
+      if (bonded) {
+        console.log(`[ResolveOrProvision] Auto-bonded ${newAccountId} to Trust Agent`);
+      }
+    } catch (error) {
+      console.error(`[ResolveOrProvision] Failed to auto-bond Trust Agent:`, error);
+      // Non-blocking - user account is already functional
+    }
+    
     return newAccountId;
   }, 60000); // 60s TTL for Mirror Node propagation
   

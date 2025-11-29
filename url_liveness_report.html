@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Liveness Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .percentage {
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .stat-card.live .number { color: #10b981; }
+        .stat-card.fail .number { color: #ef4444; }
+        .stat-card.error .number { color: #f59e0b; }
+        .stat-card.total .number { color: #667eea; }
+        
+        .filters {
+            padding: 20px 40px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filters label {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .filters button {
+            padding: 8px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .filters button:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .filters button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .table-container {
+            padding: 40px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+        }
+        
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-live {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-error {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .url-link {
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        
+        .url-link:hover {
+            text-decoration: underline;
+        }
+        
+        .response-time {
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        .notes {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        footer {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+        
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: border-color 0.2s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌐 URL Liveness Report</h1>
+            <p>Comprehensive website availability testing results</p>
+            <p style="font-size: 0.9em; margin-top: 10px;" id="timestamp"></p>
+        </header>
+        
+        <div class="summary">
+            <div class="stat-card total">
+                <h3>Total URLs</h3>
+                <div class="number" id="total-urls">0</div>
+                <div class="percentage">Tested</div>
+            </div>
+            <div class="stat-card live">
+                <h3>Live</h3>
+                <div class="number" id="live-urls">0</div>
+                <div class="percentage" id="live-percent">0%</div>
+            </div>
+            <div class="stat-card fail">
+                <h3>Failed</h3>
+                <div class="number" id="fail-urls">0</div>
+                <div class="percentage" id="fail-percent">0%</div>
+            </div>
+            <div class="stat-card error">
+                <h3>Errors</h3>
+                <div class="number" id="error-urls">0</div>
+                <div class="percentage" id="error-percent">0%</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <label>Filter:</label>
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="LIVE">Live</button>
+            <button class="filter-btn" data-filter="FAIL">Failed</button>
+            <button class="filter-btn" data-filter="CLIENT_ERROR">Errors</button>
+            <div class="search-box">
+                <input type="text" id="search" placeholder="Search URLs...">
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table id="results-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>URL</th>
+                        <th>Status</th>
+                        <th>HTTP Code</th>
+                        <th>Response Time</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                </tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>Generated on <span id="footer-date"></span></p>
+            <p style="margin-top: 5px;">Report created by URL Liveness Testing Tool</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Set timestamps
+        const now = new Date();
+        document.getElementById('timestamp').textContent = now.toLocaleString();
+        document.getElementById('footer-date').textContent = now.toLocaleDateString();
+        
+        // Load and parse CSV data
+        let allData = [];
+        
+        async function loadData() {
+            try {
+                const response = await fetch('url_liveness_report.csv');
+                const csvText = await response.text();
+                const lines = csvText.trim().split('\n');
+                
+                // Skip header
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    const regex = /"([^"]*?)","([^"]*?)","([^"]*?)","([^"]*?)","([^"]*?)","([^"]*?)"/;
+                    const match = line.match(regex);
+                    
+                    if (match) {
+                        allData.push({
+                            url: match[1],
+                            status: match[2],
+                            httpCode: match[3],
+                            responseTime: match[4],
+                            redirectUrl: match[5],
+                            notes: match[6]
+                        });
+                    }
+                }
+                
+                updateStats();
+                renderTable(allData);
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        function updateStats() {
+            const total = allData.length;
+            const live = allData.filter(d => d.status === 'LIVE').length;
+            const fail = allData.filter(d => d.status === 'FAIL').length;
+            const error = allData.filter(d => d.status === 'CLIENT_ERROR' || d.status === 'SERVER_ERROR').length;
+            
+            document.getElementById('total-urls').textContent = total;
+            document.getElementById('live-urls').textContent = live;
+            document.getElementById('fail-urls').textContent = fail;
+            document.getElementById('error-urls').textContent = error;
+            
+            document.getElementById('live-percent').textContent = `${Math.round(live/total*100)}%`;
+            document.getElementById('fail-percent').textContent = `${Math.round(fail/total*100)}%`;
+            document.getElementById('error-percent').textContent = `${Math.round(error/total*100)}%`;
+        }
+        
+        function renderTable(data) {
+            const tbody = document.getElementById('results-body');
+            tbody.innerHTML = '';
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                let statusClass = 'status-fail';
+                if (item.status === 'LIVE') statusClass = 'status-live';
+                else if (item.status === 'CLIENT_ERROR' || item.status === 'SERVER_ERROR') statusClass = 'status-error';
+                
+                const responseTime = item.responseTime !== 'N/A' ? `${item.responseTime} ms` : 'N/A';
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><a href="${item.url}" target="_blank" class="url-link">${item.url}</a></td>
+                    <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                    <td>${item.httpCode}</td>
+                    <td class="response-time">${responseTime}</td>
+                    <td class="notes">${item.notes}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+        
+        // Filter functionality
+        let currentFilter = 'all';
+        let currentSearch = '';
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.filter;
+                applyFilters();
+            });
+        });
+        
+        document.getElementById('search').addEventListener('input', (e) => {
+            currentSearch = e.target.value.toLowerCase();
+            applyFilters();
+        });
+        
+        function applyFilters() {
+            let filtered = allData;
+            
+            // Apply status filter
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(item => item.status === currentFilter);
+            }
+            
+            // Apply search filter
+            if (currentSearch) {
+                filtered = filtered.filter(item => 
+                    item.url.toLowerCase().includes(currentSearch) ||
+                    item.notes.toLowerCase().includes(currentSearch)
+                );
+            }
+            
+            renderTable(filtered);
+        }
+        
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
