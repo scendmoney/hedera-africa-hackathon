@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Shield, Zap, Users, Code2, Globe, Rocket, MessageCircle, Lock, Send } from "lucide-react";
 import { MagicLogin } from '@/components/MagicLogin';
 import { Button } from "@/components/ui/button";
+import { VideoThumbnail } from "@/components/VideoModal";
 
 export default function Home() {
   return (
@@ -38,7 +39,7 @@ export default function Home() {
                   <br />
                   <span className="text-[#10b981] font-normal">Programmable Trust Infrastructure</span>
                 </h1>
-                <p className="text-xl text-zinc-400 leading-relaxed max-w-xl">
+                <p className="text-xl text-zinc-400 leading-relaxed">
                   A hackathon prototype exploring portable reputation, anonymous trust staking, and verifiable credibility on Hedera.
                 </p>
               </div>
@@ -94,6 +95,15 @@ export default function Home() {
                     <p className="text-sm text-zinc-400">
                       Explore the prototype. Works on localhost and testnet.
                     </p>
+                  </div>
+
+                  {/* Video Thumbnail */}
+                  <div className="flex justify-center">
+                    <VideoThumbnail
+                      title="TrustMesh"
+                      videoSrc="/videos/trustmesh-promo.mp4"
+                      thumbnailSrc="/thumbnails/trustmesh-thumb.jpg"
+                    />
                   </div>
 
                   {/* Magic Login Form */}
