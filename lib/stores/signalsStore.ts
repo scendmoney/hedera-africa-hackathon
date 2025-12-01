@@ -46,7 +46,7 @@ function deriveId(ev: any): string | null {
 // Normalized SignalEvent shape - single source of truth for UI
 export interface SignalEvent {
   id?: string
-  type: 'CONTACT_REQUEST' | 'CONTACT_ACCEPT' | 'TRUST_ALLOCATE' | 'RECOGNITION_MINT' | 'PROFILE_UPDATE' | string
+  type: 'CONTACT_REQUEST' | 'CONTACT_ACCEPT' | 'TRUST_ALLOCATE' | 'RECOGNITION_MINT' | 'SIGNAL_MINT' | 'PROFILE_UPDATE' | string
   actor: string                  // who performed the action
   target?: string                // optional counterparty
   ts: number                     // epoch millis
@@ -65,8 +65,12 @@ export type TokenStatus = "active" | "transferred" | "burned"
 export interface BondedContact {
   peerId: string
   handle?: string
-  bondedAt: number
+  evmAddress?: string // EVM address for XMTP messaging
+  bondedAt: number | string
   trustLevel?: number
+  isBonded?: boolean  // true = mutual ACCEPT, false = pending REQUEST
+  isPending?: boolean // true = optimistic update, waiting for Mirror Node confirmation
+  hrl?: string
 }
 
 export interface TrustStats {
@@ -94,6 +98,9 @@ class SignalsStore {
   private readonly HARD_CAP = 200
   private recognitionDefinitions: Record<string, any> = {}
   private listeners: (() => void)[] = []
+  
+  // TODO: T3 - Boost counts for GenZ viral sharing
+  private boostCounts: Map<string, number> = new Map()
 
   // --- Core API ---
   add(event: SignalEvent): void {
@@ -102,8 +109,31 @@ class SignalsStore {
       event.id = `sig_${Date.now()}_${Math.random().toString(36).slice(2)}`
     }
     
-    // Remove existing signal with same ID if exists
-    this.signals = this.signals.filter(s => s.id !== event.id)
+    // Special handling for PROFILE_UPDATE: don't overwrite optimistic updates with older HCS data
+    if (event.type === 'PROFILE_UPDATE') {
+      const existingProfile = this.signals.find(s => 
+        s.type === 'PROFILE_UPDATE' && s.actor === event.actor
+      )
+      
+      if (existingProfile) {
+        // If existing is optimistic (_optimistic flag) and newer, keep it
+        const existingIsOptimistic = existingProfile.metadata?._optimistic === true
+        const incomingIsFromHCS = !event.metadata?._optimistic
+        
+        if (existingIsOptimistic && incomingIsFromHCS && existingProfile.ts > event.ts) {
+          console.log('[SignalsStore] Skipping older HCS profile update for:', event.actor, '(keeping optimistic)')
+          return // Don't add, keep the optimistic one
+        }
+        
+        // Otherwise, remove the old one
+        this.signals = this.signals.filter(s => 
+          !(s.type === 'PROFILE_UPDATE' && s.actor === event.actor)
+        )
+      }
+    } else {
+      // For non-profile events, remove existing signal with same ID
+      this.signals = this.signals.filter(s => s.id !== event.id)
+    }
     
     // Add new signal (most recent first)
     this.signals.unshift(event)
@@ -159,6 +189,119 @@ class SignalsStore {
     }
 
     return filtered
+  }
+
+  // --- Contact Helpers ---
+  getBondedContacts(sessionId: string): BondedContact[] {
+    console.log('[getBondedContacts] Called for sessionId:', sessionId)
+    console.log('[getBondedContacts] Total signals in store:', this.signals.length)
+    
+    // Find all CONTACT_ACCEPT and CONTACT_MIRROR events involving this user
+    const contactEvents = this.signals.filter(s => 
+      (s.type === 'CONTACT_ACCEPT' || s.type === 'CONTACT_MIRROR') &&
+      (s.actor === sessionId || s.target === sessionId)
+    )
+    
+    console.log('[getBondedContacts] Found contactEvents:', contactEvents.length)
+    contactEvents.forEach(e => {
+      console.log('[getBondedContacts] Event:', e.type, 'actor:', e.actor, 'target:', e.target, 'source:', e.source, 'ts:', e.ts)
+    })
+    
+    // Build unique contact list
+    const contactsMap = new Map<string, BondedContact>()
+    
+    for (const event of contactEvents) {
+      const contactId = event.actor === sessionId ? event.target : event.actor
+      if (!contactId || contactId === sessionId) continue
+      
+      const existing = contactsMap.get(contactId)
+      
+      // If we already have this contact, only update if the new event is from HCS (confirmed)
+      if (existing) {
+        if (event.source === 'hcs' && existing.isPending) {
+          existing.isPending = false // Upgrade from pending to confirmed
+        }
+        continue
+      }
+      
+      // New contact - add it
+      const metadata = event.metadata as any
+      
+      // Extract contact info based on who initiated vs who accepted
+      const isUserActor = event.actor === sessionId
+      const contactData = isUserActor ? metadata?.to : metadata?.from
+      
+      const handle = contactData?.handle || 
+                    metadata?.from?.handle || 
+                    metadata?.to?.handle || 
+                    metadata?.acceptor?.handle ||
+                    metadata?.requester?.handle ||
+                    `User ${contactId.slice(-6)}`
+      
+      const hrl = contactData?.hrl ||
+                 metadata?.from?.hrl || 
+                 metadata?.to?.hrl || 
+                 `hrl:tm/${contactId}`
+      
+      const evmAddress = contactData?.evm ||
+                        metadata?.from?.evm ||
+                        metadata?.to?.evm
+      
+      contactsMap.set(contactId, {
+        peerId: contactId,
+        handle,
+        evmAddress,
+        hrl,
+        bondedAt: event.ts,
+        isBonded: true,
+        // Mark as pending only if this event is from recent local cache (< 2 min old)
+        // AND we haven't seen an HCS confirmation yet
+        isPending: event.source === 'hcs-cached' && (Date.now() - event.ts < 120000)
+      })
+    }
+    
+    // Get latest profile names for contacts
+    const profileUpdates = this.signals.filter(s => s.type === 'PROFILE_UPDATE')
+    for (const [contactId, contact] of contactsMap.entries()) {
+      const profile = profileUpdates.find(p => p.actor === contactId)
+      if (profile && profile.metadata?.displayName) {
+        contact.handle = profile.metadata.displayName
+      }
+    }
+    
+    const result = Array.from(contactsMap.values())
+    console.log('[getBondedContacts] Returning', result.length, 'contacts:', result.map(c => c.peerId))
+    return result
+  }
+
+  // --- Profile Update Helper ---
+  updateProfile(accountId: string, profile: { displayName?: string; bio?: string; avatar?: string }): void {
+    // Remove ALL existing profile updates for this account (optimistic + HCS)
+    this.signals = this.signals.filter(s => 
+      !(s.type === 'PROFILE_UPDATE' && s.actor === accountId)
+    )
+
+    const profileEvent: SignalEvent = {
+      id: `profile:${accountId}`, // Consistent ID format
+      type: 'PROFILE_UPDATE',
+      actor: accountId,
+      ts: Date.now(),
+      topicId: 'local', // will be replaced by HCS
+      source: 'hcs-cached',
+      metadata: {
+        ...profile,
+        accountId,
+        displayName: profile.displayName, // Explicitly set for extraction
+        _optimistic: true // Mark as optimistic update
+      }
+    }
+
+    // Add at the beginning (most recent)
+    this.signals.unshift(profileEvent)
+
+    console.log('[SignalsStore] Updated profile for:', accountId, profile.displayName)
+    this.persistToStorage()
+    this.notifyListeners()
   }
 
   // --- Recognition Helpers ---
@@ -218,11 +361,25 @@ class SignalsStore {
     console.log('[SignalsStore] Marked seen:', items.length, 'items')
   }
 
+  // TODO: T3 - Boost count management
+  getBoostCount(signalId: string): number {
+    return this.boostCounts.get(signalId) || 0
+  }
+
+  incrementBoostCount(signalId: string): void {
+    const current = this.boostCounts.get(signalId) || 0
+    this.boostCounts.set(signalId, current + 1)
+    console.log('[SignalsStore] Boosted signal:', signalId, 'count:', current + 1)
+    this.persistToStorage()
+    this.notifyListeners()
+  }
+
   // --- Debug Summary ---
   getSummary(): {
     countsByType: Record<string, number>,
     countsBySource: Record<'hcs' | 'hcs-cached', number>,
     total: number,
+    totalBoosts: number,
     lastTs?: number
   } {
     const countsByType: Record<string, number> = {}
@@ -242,10 +399,13 @@ class SignalsStore {
       }
     }
 
+    const totalBoosts = Array.from(this.boostCounts.values()).reduce((sum, count) => sum + count, 0)
+
     return {
       countsByType,
       countsBySource,
       total: this.signals.length,
+      totalBoosts,
       lastTs
     }
   }
@@ -270,6 +430,7 @@ class SignalsStore {
   clear(): void {
     this.signals = []
     this.recognitionDefinitions = {}
+    this.boostCounts.clear()
     console.log('[SignalsStore] Cleared all signals')
     this.notifyListeners()
   }
@@ -280,9 +441,10 @@ class SignalsStore {
       if (typeof window !== 'undefined') {
         const data = {
           signals: this.signals,
-          recognitionDefinitions: this.recognitionDefinitions
+          recognitionDefinitions: this.recognitionDefinitions,
+          boostCounts: Array.from(this.boostCounts.entries())
         }
-        localStorage.setItem('trustmesh_signals', JSON.stringify(data))
+        localStorage.setItem('trustmesh:signals', JSON.stringify(data))
       }
     } catch (error) {
       console.warn('[SignalsStore] Failed to persist to storage:', error)
@@ -292,11 +454,12 @@ class SignalsStore {
   loadFromStorage(): void {
     try {
       if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('trustmesh_signals')
+        const stored = localStorage.getItem('trustmesh:signals')
         if (stored) {
           const data = JSON.parse(stored)
           this.signals = data.signals || []
           this.recognitionDefinitions = data.recognitionDefinitions || {}
+          this.boostCounts = new Map(data.boostCounts || [])
           console.log('[SignalsStore] Loaded', this.signals.length, 'signals from storage')
         }
       }
@@ -342,7 +505,7 @@ export function useSignals<T>(
   )
 }
 
-// Add compatibility methods for legacy code
+// Add compatibility methods for legacy code (both client and server)
 if (!('addSignal' in signalsStore)) {
   (signalsStore as any).addSignal = signalsStore.add.bind(signalsStore)
 }

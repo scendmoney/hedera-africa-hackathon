@@ -3,15 +3,13 @@
  * Coordinates backfill, streaming, and two-phase recognition processing
  */
 
-import { HCS_ENABLED, MIRROR_REST, MIRROR_WS, TOPICS, TopicKey, INGEST_DEBUG } from '@/lib/env'
+import { HCS_ENABLED, MIRROR_REST, MIRROR_WS, TOPICS, TopicKey, INGEST_DEBUG, WS_ENABLED, REST_POLL_INTERVAL } from '@/lib/env'
 import { signalsStore } from '@/lib/stores/signalsStore'
+import { circleState } from '@/lib/stores/HcsCircleState'
 import { normalizeHcsMessage } from './normalizers'
-import { decodeRecognition, isRecognitionDefinition, isRecognitionInstance } from './recognition/decodeRecognition'
-import { recognitionCache } from './recognition/cache'
 import { backfillTopic } from './restBackfill'
 import { connectTopicWs } from './wsStream'
-import { loadCursor, saveCursor } from './cursor'
-import { compareConsensusNs } from './time'
+import { loadCursor, saveCursor, clearAllCursors, getAllCursors } from './cursor'
 import { syncState } from '@/lib/sync/syncState'
 
 interface IngestStats {
@@ -21,9 +19,6 @@ interface IngestStats {
   failed: number
   lastConsensusNs?: string
   lastActivity?: number
-  recognitionDefinitions?: number
-  recognitionInstances?: number
-  recognitionPending?: number
 }
 
 // Global stats tracking
@@ -32,11 +27,14 @@ const stats: Record<TopicKey, IngestStats> = {
   trust: { backfilled: 0, streamed: 0, duplicates: 0, failed: 0 },
   profile: { backfilled: 0, streamed: 0, duplicates: 0, failed: 0 },
   signal: { backfilled: 0, streamed: 0, duplicates: 0, failed: 0 },
-  recognition: { backfilled: 0, streamed: 0, duplicates: 0, failed: 0, recognitionDefinitions: 0, recognitionInstances: 0, recognitionPending: 0 },
+  recognition: { backfilled: 0, streamed: 0, duplicates: 0, failed: 0 },
 }
 
 // Track active connections for cleanup
 const activeConnections = new Map<TopicKey, () => void>()
+
+// Track REST polling intervals
+const pollingIntervals = new Map<TopicKey, NodeJS.Timeout>()
 
 let ingestionStarted = false
 
@@ -74,7 +72,13 @@ export async function startIngestion(): Promise<void> {
 
     // Phase 2: Start real-time streaming for each topic (with error recovery)
     try {
-      startStreamingAllTopics()
+      if (WS_ENABLED) {
+        console.info('[Ingest] WebSocket streaming enabled')
+        startStreamingAllTopics()
+      } else {
+        console.info('[Ingest] WebSocket disabled, using REST polling only')
+        startRestPollingAllTopics()
+      }
     } catch (streamingError) {
       console.error('[Ingest] Streaming failed, running with cached data only:', streamingError)
       // Don't throw - system can still use cached data
@@ -98,6 +102,13 @@ export async function startIngestion(): Promise<void> {
  */
 export function stopIngestion(): void {
   console.info('[Ingest] Stopping ingestion…')
+  
+  // Clear all polling intervals
+  for (const [topic, intervalId] of pollingIntervals) {
+    clearInterval(intervalId)
+    console.info(`[Ingest] Stopped polling for ${topic}`)
+  }
+  pollingIntervals.clear()
   
   // Close all active connections
   for (const [topic, cleanup] of activeConnections) {
@@ -138,7 +149,17 @@ async function backfillAllTopics(): Promise<void> {
   
   const backfillPromises = validTopics.map(async ([key, topicId]) => {
     const topicKey = key as TopicKey
-    const since = await loadCursor(topicKey)
+    
+    // Try to load saved cursor, fallback to 7-day lookback
+    let since = await loadCursor(topicKey)
+    
+    if (!since) {
+      // No cursor saved - use 7-day lookback window
+      const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000)
+      const sevenDaysAgoSec = Math.floor(sevenDaysAgo / 1000)
+      since = `${sevenDaysAgoSec}.0`
+      console.info(`[Ingest] No cursor for ${topicKey}, using 7-day lookback: ${since}`)
+    }
     
     try {
       const { count, last } = await backfillTopic({
@@ -184,12 +205,7 @@ async function backfillAllTopics(): Promise<void> {
     })
   }
   
-  // After backfill, process any pending recognition instances
-  if (recognitionCache.debug().pendingInstancesCount > 0) {
-    console.info('[Ingest] Processing pending recognition instances after backfill')
-    recognitionCache.reprocessPending(signalsStore)
-    updateRecognitionStats()
-  }
+  // Backfill complete - all events normalized and added to store
 }
 
 /**
@@ -269,22 +285,101 @@ function startStreamingAllTopics(): void {
 }
 
 /**
+ * Start REST polling for all topics (fallback when WebSocket is unavailable)
+ */
+function startRestPollingAllTopics(): void {
+  // Filter out empty or invalid topic IDs
+  const validTopics = Object.entries(TOPICS).filter(([key, topicId]) => {
+    const isValid = topicId && topicId.trim() !== '' && topicId.match(/^0\.0\.[0-9]+$/)
+    if (!isValid) {
+      console.warn(`[Ingest] Skipping invalid topic ID for REST polling ${key}: "${topicId}"`)
+    }
+    return isValid
+  })
+  
+  console.info(`[Ingest] Starting REST polling for ${validTopics.length} valid topics (interval: ${REST_POLL_INTERVAL}ms)`)
+  
+  validTopics.forEach(([key, topicId]) => {
+    const topicKey = key as TopicKey
+    
+    // Create polling function
+    const poll = async () => {
+      try {
+        const { count, last } = await backfillTopic({
+          topicId,
+          since: stats[topicKey].lastConsensusNs,
+          MIRROR_REST,
+          onMessage: (msg, consensusNs) => {
+            handleMessage(topicKey, msg, 'hcs', consensusNs)
+            stats[topicKey].streamed++
+          },
+        })
+        
+        if (count > 0) {
+          console.info(`[Ingest] REST poll found ${count} new messages for ${topicKey}`)
+          stats[topicKey].lastActivity = Date.now()
+          syncState.recordActivity()
+          syncState.markSynced()
+        }
+        
+        if (last) {
+          stats[topicKey].lastConsensusNs = last
+          await saveCursor(topicKey, last)
+        }
+      } catch (error) {
+        console.warn(`[Ingest] REST polling failed for ${topicKey}:`, error)
+        stats[topicKey].failed++
+        syncState.pushError(error)
+      }
+    }
+    
+    // Start polling immediately, then on interval
+    poll()
+    const intervalId = setInterval(poll, REST_POLL_INTERVAL)
+    pollingIntervals.set(topicKey, intervalId)
+    
+    console.info(`[Ingest] Started REST polling for ${topicKey}`)
+  })
+  
+  // Update sync state
+  if (typeof window !== 'undefined') {
+    syncState.setConnectionCount(pollingIntervals.size)
+    syncState.setLive(true) // Consider polling as "live"
+  }
+}
+
+/**
  * Handle incoming message for a specific topic
+ * All topics now use standard normalization (no special recognition handling)
  */
 function handleMessage(topic: TopicKey, raw: any, source: 'hcs' | 'hcs-cached', consensusNs?: string): void {
   try {
     stats[topic].lastActivity = Date.now()
     
-    // Special handling for recognition topic (two-phase processing)
-    if (topic === 'recognition') {
-      handleRecognitionMessage(raw, source)
-      return
-    }
-
-    // Standard message processing
+    // Standard message processing for all topics
     const normalizedEvent = normalizeHcsMessage(raw, source)
     if (normalizedEvent) {
+      // Add to SignalsStore (existing behavior)
       signalsStore.add(normalizedEvent)
+      
+      // NEW: Update HcsCircleState for contact/trust events
+      if (normalizedEvent.type === 'CONTACT_ACCEPT' || normalizedEvent.type === 'CONTACT_REVOKE') {
+        circleState.addContactEvent({
+          type: normalizedEvent.type,
+          actor: normalizedEvent.actor,
+          target: normalizedEvent.target,
+          ts: normalizedEvent.ts,
+          metadata: normalizedEvent.metadata
+        })
+      } else if (normalizedEvent.type === 'TRUST_ALLOCATE') {
+        circleState.addTrustEvent({
+          type: normalizedEvent.type,
+          actor: normalizedEvent.actor,
+          target: normalizedEvent.target,
+          ts: normalizedEvent.ts,
+          metadata: normalizedEvent.metadata
+        })
+      }
     } else {
       stats[topic].failed++
       if (INGEST_DEBUG) {
@@ -302,69 +397,6 @@ function handleMessage(topic: TopicKey, raw: any, source: 'hcs' | 'hcs-cached', 
   }
 }
 
-/**
- * Handle recognition message with two-phase processing
- */
-function handleRecognitionMessage(raw: any, source: 'hcs' | 'hcs-cached'): void {
-  try {
-    const decoded = decodeRecognition(raw)
-    
-    if (isRecognitionDefinition(decoded)) {
-      // Phase A: Store definition
-      recognitionCache.upsertDefinition(decoded)
-      stats.recognition.recognitionDefinitions = (stats.recognition.recognitionDefinitions || 0) + 1
-      
-      // Try to resolve any pending instances
-      recognitionCache.reprocessPending(signalsStore)
-      updateRecognitionStats()
-      
-    } else if (isRecognitionInstance(decoded)) {
-      // Phase B: Try to resolve instance
-      const resolved = recognitionCache.resolveInstance(decoded)
-      
-      if (resolved) {
-        // Successfully resolved - convert to SignalEvent
-        const signalEvent = {
-          id: raw.sequence_number ? `${raw.topic_id}/${raw.sequence_number}` : `${raw.topic_id}/${Date.now()}-${Math.random()}`,
-          type: 'RECOGNITION_MINT',
-          actor: decoded.actor || 'unknown',
-          target: decoded.owner,
-          timestamp: decoded.timestamp || Date.now(),
-          topicId: raw.topic_id || raw.topicId || '',
-          metadata: resolved,
-          source,
-        }
-        
-        signalsStore.add(signalEvent)
-        stats.recognition.recognitionInstances = (stats.recognition.recognitionInstances || 0) + 1
-      } else {
-        // Queue for later resolution
-        recognitionCache.queueInstance(decoded)
-        updateRecognitionStats()
-      }
-    } else {
-      // Unknown recognition message - try standard normalization as fallback
-      const normalizedEvent = normalizeHcsMessage(raw, source)
-      if (normalizedEvent) {
-        signalsStore.add(normalizedEvent)
-      } else {
-        stats.recognition.failed++
-      }
-    }
-    
-  } catch (error) {
-    stats.recognition.failed++
-    console.error('[Ingest] Recognition message processing failed:', error, { raw })
-  }
-}
-
-/**
- * Update recognition-specific statistics
- */
-function updateRecognitionStats(): void {
-  const cacheStats = recognitionCache.getStats()
-  stats.recognition.recognitionPending = cacheStats.pendingInstances
-}
 
 /**
  * Expose debug interface to global scope
@@ -374,7 +406,6 @@ function exposeDebugInterface(): void {
     // Browser environment
     (window as any).trustmeshIngest = {
       stats: () => ({ ...stats }),
-      recognitionCache: () => recognitionCache.debug(),
       signalsStore: () => {
         try {
           return signalsStore.getSummary();
@@ -389,18 +420,33 @@ function exposeDebugInterface(): void {
         await startIngestion()
       },
       clearCaches: () => {
-        recognitionCache.clear()
         signalsStore.clear()
+        circleState.clear()
         Object.keys(stats).forEach(key => {
           const topicKey = key as TopicKey
           stats[topicKey] = { backfilled: 0, streamed: 0, duplicates: 0, failed: 0 }
         })
+      },
+      // NEW: Cursor management for debugging
+      cursors: () => getAllCursors(),
+      clearCursors: async () => {
+        await clearAllCursors()
+        console.log('[Debug] Cursors cleared - restart ingestion to resync from 7 days ago')
+      },
+      forceResync: async () => {
+        console.log('[Debug] Force resync: clearing all caches and cursors...')
+        await clearAllCursors()
+        signalsStore.clear()
+        circleState.clear()
+        stopIngestion()
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        await startIngestion()
+        console.log('[Debug] Resync complete - reloaded from 7-day lookback window')
       }
     }
   } else {
     // Node environment (for API endpoints)
     (global as any).__ingest_stats__ = stats
-    (global as any).__recognition_cache__ = recognitionCache
   }
 }
 
@@ -429,7 +475,6 @@ export function getIngestionStats() {
     totalErrors: Object.values(stats).reduce((sum, s) => sum + s.failed, 0),
     isRunning: ingestionStarted,
     activeConnections: activeConnections.size,
-    recognitionCache: recognitionCache.getStats(),
     signalsStore: signalsStoreSummary,
   }
 }

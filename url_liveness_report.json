@@ -1,0 +1,722 @@
+[
+  {
+    "url": "https://5starconcierge.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "156",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://advantageins.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "841",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://aicinsagency.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "467",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://artmcghehey.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "825",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://avelloemortgage.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://benmondragon.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://brooksops.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "483",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://brotherscleaning.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "704",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://cambriatrent.com/",
+    "status": "CLIENT_ERROR",
+    "http_code": "403",
+    "response_time_ms": "358",
+    "redirect_url": "",
+    "notes": "Client error"
+  }
+,
+  {
+    "url": "https://carterstrategy.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "692",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://chinookmortgage.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "716",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://clintlewis.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "1946",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://crosscountrymortgage.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "221",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://dangandee.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://danoffet.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://dcfinehomesre.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "617",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://dixsonmischel.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://eikeinsurance.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://ellismarketing.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 28)"
+  }
+,
+  {
+    "url": "https://erinjerniganins.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://eugenemortgagebrokers.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "747",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://eugenesalternative.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "706",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://eugenetaxservice.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://financeofamerica.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "759",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://fosterops.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 28)"
+  }
+,
+  {
+    "url": "https://fromdayonehr.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "714",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://halestrategy.com/",
+    "status": "CLIENT_ERROR",
+    "http_code": "404",
+    "response_time_ms": "1050",
+    "redirect_url": "",
+    "notes": "Client error"
+  }
+,
+  {
+    "url": "https://heinrichlaw.com/",
+    "status": "CLIENT_ERROR",
+    "http_code": "403",
+    "response_time_ms": "175",
+    "redirect_url": "",
+    "notes": "Client error"
+  }
+,
+  {
+    "url": "https://islercpa.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "384",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://jessicafieldsre.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://jessicajohnstonre.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://johnsonadvisors.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "243",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://justdoinsurance.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "274",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://katiejuth.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://keystonere.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "2593",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://kimmarketing.co/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://landhomefinancial.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "483",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://ledouxinsurance.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "618",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://leemgmt.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 60)"
+  }
+,
+  {
+    "url": "https://lg-lg.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 28)"
+  }
+,
+  {
+    "url": "https://littlejohnins.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "567",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://lorigalvin.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://mckenziefunding.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://melissahillsman.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://miriams-oasis.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://moralesmgmt.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://mortgagemarketplace.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "288",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://nguyenstrategy.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "810",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://oregontracktown.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://osborneconsulting.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "920",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://paramountmortgagecompany.com",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "852",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://patelhr.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://patstitt.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://polariscpa.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 35)"
+  }
+,
+  {
+    "url": "https://rebeccataylorcomm.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://riveramarketing.com/",
+    "status": "CLIENT_ERROR",
+    "http_code": "403",
+    "response_time_ms": "1346",
+    "redirect_url": "",
+    "notes": "Client error"
+  }
+,
+  {
+    "url": "https://rrpropertieseugene.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://ruizhr.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "272",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://shotolahale.wixsite.com/shotola-and-hale",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "221",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://sikora-cpa.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 28)"
+  }
+,
+  {
+    "url": "https://springfieldlawpa.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://steelegroup.info",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "972",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://steppingstonemortgage.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "6303",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://summitfunding.net/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "841",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://teamwickham.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "4972",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://uiaoregon.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "350",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://wattersfryer.com/",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+,
+  {
+    "url": "https://whainsurance.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "701",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://wheelerfunding.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "256",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://willamettewealth.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "678",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://williamsonlawpc.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "786",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.bkscpas.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "815",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.directorsmortgage.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "1200",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.eugenelaw.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "878",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.eugenemortgagebrokers.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "341",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.hershnerhunter.com",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "1181",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.kernuttstokes.com/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "464",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.lanecountyhomes.net/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "925",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://www.northwestlegal.org/",
+    "status": "LIVE",
+    "http_code": "200",
+    "response_time_ms": "2371",
+    "redirect_url": "",
+    "notes": "OK"
+  }
+,
+  {
+    "url": "https://zwhrconsulting.ch",
+    "status": "FAIL",
+    "http_code": "N/A",
+    "response_time_ms": "N/A",
+    "redirect_url": "",
+    "notes": "Connection failed (curl exit code: 6)"
+  }
+
+]

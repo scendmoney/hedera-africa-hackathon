@@ -29,21 +29,19 @@ export type TopicKey = keyof typeof TOPICS;
 
 // Clean other environment variables - ensure Mirror REST URL has /api/v1
 export const MIRROR_REST = (() => {
-  const rawUrl = clean(process.env.NEXT_PUBLIC_MIRROR_NODE_URL) || "https://testnet.mirrornode.hedera.com/api/v1";
-  // Ensure URL ends with /api/v1 if it doesn't already
-  return rawUrl.endsWith('/api/v1') ? rawUrl : `${rawUrl.replace(/\/$/, '')}/api/v1`;
+  const rawUrl = clean(process.env.NEXT_PUBLIC_MIRROR_NODE_URL) || "https://testnet.mirrornode.hedera.com";
+  // Strip any existing /api/v1 and add it once
+  const cleanUrl = rawUrl.replace(/\/$/, '').replace(/\/api\/v1$/, '');
+  return `${cleanUrl}/api/v1`;
 })();
 export const MIRROR_WS = clean(process.env.NEXT_PUBLIC_MIRROR_NODE_WS) || "wss://testnet.mirrornode.hedera.com:5600";
 export const NODE_ENV = clean(process.env.NODE_ENV) || 'development';
 
-// Demo is allowed when explicitly enabled (controlled by NEXT_PUBLIC_ALLOW_DEMO)
-export const ALLOW_DEMO =
-  (process.env.NEXT_PUBLIC_ALLOW_DEMO ?? '').trim().toLowerCase() === 'on';
-
 export const HCS_ENABLED =
   ['true','1','yes','on'].includes((process.env.NEXT_PUBLIC_HCS_ENABLED ?? '').trim().toLowerCase());
-export const DEMO_SEED = cleanBool(process.env.NEXT_PUBLIC_DEMO_SEED);
-export const DEMO_MODE = cleanBool(process.env.NEXT_PUBLIC_DEMO_MODE);
+
+// GenZ Lens Feature Flag
+export const GENZ_LENS = cleanBool(process.env.GENZ_LENS) || cleanBool(process.env.NEXT_PUBLIC_GENZ_LENS);
 
 // Session ID (cleaned)
 export const SESSION_ID = clean(process.env.NEXT_PUBLIC_SESSION_ID) || "tm-alex-chen";
@@ -62,3 +60,7 @@ export const BACKFILL_PAGE_SIZE = parseInt(process.env.HCS_BACKFILL_PAGE_SIZE ||
 export const WS_RECONNECT_MAX_BACKOFF = parseInt(process.env.HCS_WS_MAX_BACKOFF || '15000');
 export const CURSOR_STORAGE_PREFIX = 'hcs-cursor';
 export const WS_RECONNECT_JITTER_MAX = 250;
+
+// WebSocket configuration
+export const WS_ENABLED = cleanBool(process.env.NEXT_PUBLIC_HCS_WS_ENABLED) ?? true;
+export const REST_POLL_INTERVAL = parseInt(process.env.HCS_REST_POLL_INTERVAL || '10000'); // 10 seconds default
